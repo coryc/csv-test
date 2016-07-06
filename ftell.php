@@ -1,0 +1,70 @@
+<?php
+/**
+ * Testing csv ftell, to store file pointer position after each added record
+ */
+
+include_once ('utils.php');
+
+
+$data = array(
+	array(
+		'f1' => 'Super',
+		'f2' => 'Mario'
+	),
+	array(
+		'f1' => 'Sonic',
+		'f2' => 'The, Hedgehog'
+	),
+	array(
+		'f1' => 'Harry',
+		'f2' => 'Potter'
+	),
+	array(
+		'f1' => 'Neo',
+		'f2' => '"The One"'
+	),
+	array(
+		'f1' => 'Luke',
+		'f2' => 'Skywalker'
+	)
+);
+
+
+if (($fp = fopen('php://memory', 'w+')) !== false) {
+
+	$size = 0; 
+	$pos = 0;
+
+	foreach ($data as $i => $row) {
+		fputcsv($fp, $row);
+
+		$lastPos = $pos;
+		$pos = ftell($fp);
+
+		echo "Row $i :: Pointer: $pos\n";
+	}
+
+	//reset file Pointerr
+	rewind($fp);
+
+	// get stream contents
+	$csv = stream_get_contents($fp);
+
+	echo "\n--------\n";
+	echo $csv;
+	echo "--------\n\n";
+
+	// truncate
+	echo "\n\n Truncate to last pos ($lastPos)";
+	rewind($fp);
+	ftruncate($fp, $lastPos);
+	$csv = stream_get_contents($fp);
+
+	echo "\n--------\n";
+	echo $csv;
+	echo "--------\n\n";
+
+	fclose($fp);	
+} else {
+	die('Could not allocate memory');
+}
